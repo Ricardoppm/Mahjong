@@ -52,11 +52,11 @@ void GamePlayScreen::onEntry()
     debugRenderer_.init();
     
     // Initialize Board
-    board_.init(glm::vec2(10.f,13.1f), "Levels/puzzle.txt");
+    board_.init(glm::vec2(10.f,13.1f), "Levels/puzzle2.txt");
     
     // Initialize Camera
     camera_.init(window_->getScreenWidth(), window_->getScreenHeight());
-    camera_.setScale(10.f);
+    camera_.setScale(5.f);
     
     glm::vec2 boardCenter;
     boardCenter.x = board_.getNumTilesWidth() * TILE_DIM_WIDTH / 2.f;
@@ -103,7 +103,7 @@ void GamePlayScreen::draw()
     GLuint cameraUniform = textureProgram_.getUniformLocation("transformationMatrix");
     glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, &projectionMatrix[0][0]);
     
-    spriteBatch_.begin();
+    spriteBatch_.begin(Bengine::GlyphSortType::BACK_TO_FRONT);
     
     board_.draw(spriteBatch_);
     
@@ -111,9 +111,10 @@ void GamePlayScreen::draw()
     spriteBatch_.renderBatch();
     
     // Debug
-    board_.drawDebug(debugRenderer_);
+    //board_.drawDebug(debugRenderer_);
     debugRenderer_.end();
     debugRenderer_.render(camera_.getCameraMatrix(), 2.f);
+
     
     
     

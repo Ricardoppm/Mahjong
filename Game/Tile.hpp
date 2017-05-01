@@ -25,6 +25,7 @@ public:
               const glm::vec2& dims,
               Bengine::GLTexture texture,
               Bengine::ColorRGBA8 color,
+              float depth,
               Tile* below = nullptr);
     
     void draw(Bengine::SpriteBatch& spriteBatch);
@@ -35,6 +36,7 @@ public:
 private:
     glm::vec2 position_;
     glm::vec2 dimensions_;
+    float depth_;
     
     Bengine::ColorRGBA8 color_;
     Bengine::GLTexture texture_;

@@ -14,6 +14,7 @@
 #include <Bengine/SpriteBatch.hpp>
 #include <Bengine/InputManager.hpp>
 #include <Bengine/DebugRenderer.hpp>
+#include <Bengine/GLTexture.h>
 
 #include <SDL2/SDL_events.h>
 
@@ -23,6 +24,12 @@ const int TILE_MAX_WIDTH = 18;
 const int TILE_MAX_HEIGHT = 12;
 
 const float PADDING = 1.2f;
+
+struct TileTexture {
+    Bengine::GLTexture texture;
+    int counter = 0;
+};
+
 
 class GameBoard
 {
@@ -45,10 +52,13 @@ public:
 
 private:
     bool loadFromFile(const std::string& filePath);
+    void loadTileTextures(std::vector<TileTexture>& counter);
+    void loadTextureType(std::vector<TileTexture>& counter, const std::string& type, int max, int numTiles);
     bool createTiles();
     
-    
+    glm::vec2 drawDimensions_;
     glm::vec2 tileDimensions_;
+    
     int numTilesWidth_;
     int numTilesHeight_;
     
