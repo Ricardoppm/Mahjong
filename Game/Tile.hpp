@@ -24,16 +24,22 @@ public:
     void init(const glm::vec2& pos,
               const glm::vec2& dims,
               Bengine::GLTexture texture,
-              Bengine::ColorRGBA8 color);
+              Bengine::ColorRGBA8 color,
+              Tile* below = nullptr);
     
     void draw(Bengine::SpriteBatch& spriteBatch);
 
+    // Getters
+    Tile* getBelow() const { return tileBelow_; }
+    
 private:
     glm::vec2 position_;
     glm::vec2 dimensions_;
     
     Bengine::ColorRGBA8 color_;
     Bengine::GLTexture texture_;
+    
+    Tile* tileBelow_ = nullptr;
 
 };
 #endif /* Tile_hpp */

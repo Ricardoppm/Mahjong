@@ -19,12 +19,14 @@ Tile::~Tile()
 void Tile::init(const glm::vec2 &pos,
                 const glm::vec2 &dims,
                 Bengine::GLTexture texture,
-                Bengine::ColorRGBA8 color)
+                Bengine::ColorRGBA8 color,
+                Tile* below)
 {
     position_ = pos;
     dimensions_ = dims;
     color_ = color;
     texture_ = texture;
+    tileBelow_ = below;
 }
 
 void Tile::draw(Bengine::SpriteBatch &spriteBatch)

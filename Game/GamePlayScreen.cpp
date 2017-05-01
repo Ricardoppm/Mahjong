@@ -9,6 +9,7 @@
 #include "GamePlayScreen.hpp"
 
 #include <iostream>
+#include <SDL2/SDL.h>
 
 #include <Bengine/IMainGame.hpp>
 
@@ -51,16 +52,15 @@ void GamePlayScreen::onEntry()
     debugRenderer_.init();
     
     // Initialize Board
-    board_.init(glm::vec2(10.f,13.1f));
-    board_.loadFromFile("Levels/puzzle.txt");
+    board_.init(glm::vec2(10.f,13.1f), "Levels/puzzle.txt");
     
     // Initialize Camera
     camera_.init(window_->getScreenWidth(), window_->getScreenHeight());
-    camera_.setScale(4.f);
+    camera_.setScale(10.f);
     
     glm::vec2 boardCenter;
     boardCenter.x = board_.getNumTilesWidth() * TILE_DIM_WIDTH / 2.f;
-    boardCenter.y = board_.getNumTilesHeight() * TILE_DIM_HEIGHT / 2.f;
+    boardCenter.y = -board_.getNumTilesHeight() * TILE_DIM_HEIGHT / 2.f;
     camera_.setPosition(boardCenter);
     
     //Init Shaders

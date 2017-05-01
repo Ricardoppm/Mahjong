@@ -22,13 +22,15 @@
 const int TILE_MAX_WIDTH = 18;
 const int TILE_MAX_HEIGHT = 12;
 
+const float PADDING = 1.2f;
+
 class GameBoard
 {
 public:
     GameBoard();
     ~GameBoard();
     
-    void init(const glm::vec2& tileDims);
+    void init(const glm::vec2& tileDims, const std::string& filePath);
     void destroy();
     
     void draw(Bengine::SpriteBatch& spriteBatch);
@@ -36,17 +38,26 @@ public:
     
     void update(Bengine::InputManager& inputManager);
     
-    void loadFromFile(const std::string& filePath);
     
     // Getters
     const int       getNumTilesWidth() const        { return numTilesWidth_;  }
     const int       getNumTilesHeight() const       { return numTilesHeight_; }
 
 private:
+    bool loadFromFile(const std::string& filePath);
+    bool createTiles();
+    
+    
     glm::vec2 tileDimensions_;
     int numTilesWidth_;
     int numTilesHeight_;
     
     Tile tile_;
+    
+    // Holds the level setup
+    std::vector<Uint8> board_;
+    
+    // Holds all tiles
+    std::vector<Tile> tiles_;
 };
 #endif /* GameBoard_hpp */
