@@ -19,7 +19,7 @@ Tile::~Tile()
 void Tile::init(const glm::vec2& pos,
                 const glm::vec3& dims,
                 const glm::ivec3& coordinates,
-                Bengine::GLTexture texture,
+                TileTexture texture,
                 Bengine::ColorRGBA8 color,
                 float depth)
 {
@@ -37,13 +37,7 @@ void Tile::draw(Bengine::SpriteBatch &spriteBatch)
                        position_.y,
                        dimensions_.x,
                        dimensions_.y);
-    if(active_){
-        spriteBatch.draw(destRect, glm::vec4(0.f,0.f,1.f,1.f), texture_.id, depth_, Bengine::ColorRGBA8(225,225,225,255));
-    }
-    else{
-       
-        spriteBatch.draw(destRect, glm::vec4(0.f,0.f,1.f,1.f), texture_.id, depth_, color_);
-    }
+    spriteBatch.draw(destRect, glm::vec4(0.f,0.f,1.f,1.f), texture_.texture.id, depth_, color_);
 }
 
 bool Tile::isClicked(const glm::vec2& mouseClick)
@@ -55,4 +49,12 @@ bool Tile::isClicked(const glm::vec2& mouseClick)
         }
     }
     return false;
+}
+
+bool Tile::isSameTileType(const Tile* tile)
+{
+    if ( (tile->texture_.type == texture_.type) && (texture_.type == TileType::FLOWER || texture_.type == TileType::SEASON) ) {
+        return true;
+    }
+    return (tile->texture_.texture.id == texture_.texture.id);
 }

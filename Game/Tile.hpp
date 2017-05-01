@@ -15,6 +15,22 @@
 #include <Bengine/GLTexture.h>
 #include <Bengine/SpriteBatch.hpp>
 
+enum class TileType{
+    NUMERAL,
+    BAMBOO,
+    CIRCLE,
+    DRAGON,
+    WIND,
+    FLOWER,
+    SEASON
+};
+
+struct TileTexture {
+    Bengine::GLTexture texture;
+    int counter = 0;
+    TileType type;
+};
+
 class Tile
 {
 public:
@@ -24,7 +40,7 @@ public:
     void init(const glm::vec2& pos,
               const glm::vec3& dims,
               const glm::ivec3& coordinates,
-              Bengine::GLTexture texture,
+              TileTexture texture,
               Bengine::ColorRGBA8 color,
               float depth);
     
@@ -32,14 +48,16 @@ public:
 
     bool isClicked(const glm::vec2& mouseClick);
     
+    bool isSameTileType( const Tile* tile);
+    
     // Getters
     const glm::ivec3 getCoordinates() const { return coordinates_; }
-    const GLubyte getTextureId() const { return texture_.id; }
+    const GLubyte getTextureId() const { return texture_.texture.id; }
     bool isActive() const { return active_;}
     
     // Setters
     void setColor(const Bengine::ColorRGBA8& color) { color_ = color;}
-    void setActive() { active_ = true;}
+    void setActive(bool active) { active_ = active;}
     
 private:
     glm::vec2 position_;
@@ -51,7 +69,7 @@ private:
     bool active_ = false;
     
     Bengine::ColorRGBA8 color_;
-    Bengine::GLTexture texture_;
+    TileTexture texture_;
     
 };
 #endif /* Tile_hpp */

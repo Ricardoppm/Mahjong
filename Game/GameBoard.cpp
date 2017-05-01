@@ -14,7 +14,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-
+#include <map>
 
 GameBoard::GameBoard()
 {
@@ -33,9 +33,9 @@ void GameBoard::init(const glm::vec2 &tileDims, const std::string& filePath)
     if( !loadFromFile(filePath)){
         Bengine::fatalError("Puzzle Setup FILE issue!\n");
     }
-    
-    createTiles();
     boardState_ = board_;
+
+    createTiles();
 }
 
 void GameBoard::destroy()
@@ -68,24 +68,27 @@ void GameBoard::drawDebug(Bengine::DebugRenderer& debugRenderer)
 
 void GameBoard::update(Bengine::InputManager &inputManager, Bengine::Camera2D& camera)
 {
+    bool hasClickedTile = false;
     if( inputManager.isKeyPressed(SDL_BUTTON_LEFT)){
         glm::vec2 mouseCoords = camera.convertScreenToWorld( inputManager.getMouseCoords());
         for (auto tile : activeTiles_) {
-            if( tile->isClicked(mouseCoords)){
+            if( tile != selectedTile_ && tile->isClicked(mouseCoords)){
+                hasClickedTile = true;
                 //User clicked a valid Tile
                 if( selectedTile_ == nullptr){
                     selectedTile_ = tile;
-                    selectedTile_->setColor(Bengine::ColorRGBA8(225,225,225,255));
+                    selectedTile_->setColor(Bengine::ColorRGBA8(225,255,225,255));
                 }
                 else{
                     // Compare to previously selected tile
-                    if( selectedTile_->getTextureId() == tile->getTextureId()){
+                    if( selectedTile_->isSameTileType(tile)){
                         // Same Tile Type
                         glm::ivec3 coords = selectedTile_->getCoordinates();
                         removeTile(coords);
                         coords = tile->getCoordinates();
                         removeTile(coords);
                         selectedTile_ = nullptr;
+                        calculatePairsAvailable();
                         break;
                     }
                     else{
@@ -96,11 +99,13 @@ void GameBoard::update(Bengine::InputManager &inputManager, Bengine::Camera2D& c
                 break;
             }
         }
+        if( !hasClickedTile && selectedTile_){
+            selectedTile_->setColor(Bengine::ColorRGBA8(255,255,255,255));
+            selectedTile_ = nullptr;
+        }
         
     }
-
 }
-
 
 
 // Private Methods
@@ -155,22 +160,22 @@ void GameBoard::loadTileTextures(std::vector<TileTexture> &counter)
 {
     counter.reserve(42);
     // numerals
-    loadTextureType(counter, "a", 9, 4);
+    loadTextureType(counter, "a", 9, 4, TileType::NUMERAL);
     // bamboos
-    loadTextureType(counter, "b", 9, 4);
+    loadTextureType(counter, "b", 9, 4, TileType::BAMBOO);
     // circles
-    loadTextureType(counter, "c", 9, 4);
+    loadTextureType(counter, "c", 9, 4, TileType::CIRCLE);
     // winds
-    loadTextureType(counter, "w", 4, 4);
+    loadTextureType(counter, "w", 4, 4, TileType::WIND);
     // dragons
-    loadTextureType(counter, "d", 3, 4);
+    loadTextureType(counter, "d", 3, 4, TileType::DRAGON);
     // flowers
-    loadTextureType(counter, "f", 4, 1);
+    loadTextureType(counter, "f", 4, 1, TileType::FLOWER);
     // seasons
-    loadTextureType(counter, "s", 4, 1);
+    loadTextureType(counter, "s", 4, 1, TileType::SEASON);
 }
 
-void GameBoard::loadTextureType(std::vector<TileTexture>& counter, const std::string &type, int max, int numTiles)
+void GameBoard::loadTextureType(std::vector<TileTexture>& counter, const std::string &type, int max, int numTiles, TileType tileType)
 {
     static const std::string dirPath = "Textures/128/fulltiles/";
     
@@ -179,6 +184,7 @@ void GameBoard::loadTextureType(std::vector<TileTexture>& counter, const std::st
         TileTexture newTileTexture;
         newTileTexture.counter = numTiles;
         newTileTexture.texture = Bengine::ResourceManager::getTexture(file);
+        newTileTexture.type = tileType;
         counter.push_back(newTileTexture);
     }
 }
@@ -220,7 +226,7 @@ bool GameBoard::createTiles()
                     newTile->init(pos,
                                  tileDimensions,
                                  glm::ivec3(x,y,height) ,
-                                 counter[textureIndex].texture,
+                                 counter[textureIndex],
                                  Bengine::ColorRGBA8(255,255,255,255),
                                  (float)(-height / 5.f) + (0.01f * (float)x) + (float)(-0.0001f * (y/2)) );
                     tiles_.push_back(newTile);
@@ -238,16 +244,34 @@ bool GameBoard::createTiles()
                     level[index - 1 + (numTilesWidth_*2)]--;
                     level[index + (numTilesWidth_*2)]--;
 
-                    if (!level[index] && !level[index - 1] && !level[index - 1 + (numTilesWidth_*2)] && !level[index + (numTilesWidth_*2)]) {
-                        // Tile has no other blocking above
-                        newTile->setActive();
+                    if (!level[index] &&
+                        !level[index - 1] &&
+                        !level[index - 1 + (numTilesWidth_*2)] &&
+                        !level[index + (numTilesWidth_*2)]) {
+                        // There is no other tile above
                         activeTiles_.push_back(newTile);
                     }
-                    
                 }
             }
         }
     }
+    
+    for( int i = 0; i< activeTiles_.size();){
+        if(!isTileActive(activeTiles_[i]->getCoordinates())){
+            // Tile has neighbours on both sides
+            // Remove from active pile
+            activeTiles_[i] = activeTiles_.back();
+            activeTiles_.pop_back();
+        }
+        else{
+            activeTiles_[i]->setActive(true);
+            i++;
+        }
+    }
+    
+    calculatePairsAvailable();
+
+    
     return true;
 }
 
@@ -277,15 +301,64 @@ void GameBoard::removeTile(const glm::ivec3& coords)
                 boardState_[tileIndex] == height &&
                 boardState_[tileIndex - 1] == height &&
                 boardState_[tileIndex - 1 + (numTilesWidth_*2)] == height &&
-                boardState_[tileIndex + (numTilesWidth_*2)] == height){
+                boardState_[tileIndex + (numTilesWidth_*2)] == height &&
+                isTileActive(tileCoord)){
                 // Tile is unblocked
                 // Add it to the active pile
                 activeTiles_.push_back(tiles_[i]);
-                tiles_[i]->setActive();
+                tiles_[i]->setActive(true);
             }
             i++;
         }
     }
-
 }
 
+
+bool GameBoard::isTileActive(const glm::ivec3 &coords)
+{
+    static const int LEFT_BORDER_INDEX = 1;
+    static const int RIGHT_BORDER_INDEX = (numTilesWidth_*2)-1;
+
+    int tileIndex = coords.y * (numTilesWidth_*2) + coords.x;
+    Uint8 height = coords.z + 1;
+    if( (coords.x == LEFT_BORDER_INDEX || coords.x == RIGHT_BORDER_INDEX) && boardState_[tileIndex] == height ){
+        // TOP Border Tiles are always active
+        return true;
+    }
+    
+    // Check if it has a left neighbour with lower height
+    if( boardState_[tileIndex - 2] < height &&
+        boardState_[tileIndex - 2 + (numTilesWidth_*2)] < height){
+        return true;
+    }
+    
+    // Check if it has a left neighbour with lower height
+    if( boardState_[tileIndex + 1] < height &&
+        boardState_[tileIndex + 1 + (numTilesWidth_*2)] < height){
+        return true;
+    }
+    return false;
+}
+
+void GameBoard::calculatePairsAvailable()
+{
+    std::map<int, int> map;
+    
+    // Make map
+    for (auto tile: activeTiles_) {
+        int textureID =tile->getTextureId();
+        auto it = map.find(textureID);
+        if( it == map.end()){
+            map[textureID] = 1;
+        }
+        else{
+            map[textureID]++;
+        }
+    }
+    
+    numPairsAvailable = 0;
+    // Sum available pairs
+    for(auto it = map.begin(); it != map.end(); it++){
+        numPairsAvailable += it->second/2;
+    }
+}

@@ -17,6 +17,8 @@
 #include <Bengine/GLTexture.h>
 #include <Bengine/InputManager.hpp>
 #include <Bengine/DebugRenderer.hpp>
+#include <Bengine/SpriteFont.hpp>
+#include <Bengine/GUI.hpp>
 
 #include "GameBoard.hpp"
 
@@ -48,15 +50,28 @@ public:
 private:
     void checkInput();
     
+    void loadBackground(const std::string& filePath);
+    void drawHUD();
+    void initUI();
+    
     Bengine::Window* window_;
     
     Bengine::GLSLProgram textureProgram_;
-    Bengine::SpriteBatch spriteBatch_;
+    
+    Bengine::SpriteBatch tileSpriteBatch_;
+    Bengine::SpriteBatch hudSpriteBatch_;
+    Bengine::SpriteBatch bgSpriteBatch_;
+    
+    Bengine::SpriteFont* spriteFont_;
+    
     Bengine::Camera2D camera_;
     
     Bengine::DebugRenderer debugRenderer_;
+    
+    Bengine::GUI gui_;
 
-
+    Uint32 startTimer;
+    
     GameBoard board_;
 };
 #endif /* GamePlayScreen_hpp */

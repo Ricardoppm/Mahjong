@@ -26,11 +26,6 @@ const int TILE_MAX_HEIGHT = 12;
 
 const float PADDING = 1.2f;
 
-struct TileTexture {
-    Bengine::GLTexture texture;
-    int counter = 0;
-};
-
 
 class GameBoard
 {
@@ -46,18 +41,24 @@ public:
     
     void update(Bengine::InputManager& inputManager, Bengine::Camera2D& camera);
     
-    
     // Getters
     const int       getNumTilesWidth() const        { return numTilesWidth_;  }
     const int       getNumTilesHeight() const       { return numTilesHeight_; }
+    const size_t    getTilesRemaining() const       { return tiles_.size();   }
+    const int       getNumPairsAvailable() const    { return numPairsAvailable; }
 
 private:
     bool loadFromFile(const std::string& filePath);
     void loadTileTextures(std::vector<TileTexture>& counter);
-    void loadTextureType(std::vector<TileTexture>& counter, const std::string& type, int max, int numTiles);
+    void loadTextureType(std::vector<TileTexture>& counter, const std::string& type, int max, int numTiles, TileType tileType);
     bool createTiles();
     
     void removeTile(const glm::ivec3& coords);
+    
+    bool isTileActive(const glm::ivec3& coords);
+    
+    void calculatePairsAvailable();
+
     
     glm::vec2 drawDimensions_;
     glm::vec2 tileDimensions_;
@@ -74,6 +75,8 @@ private:
     // Holds all tiles
     std::vector<Tile*> tiles_;
     std::vector<Tile*> activeTiles_;
+    
+    int numPairsAvailable;
     
     
 
