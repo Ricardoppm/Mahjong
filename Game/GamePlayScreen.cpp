@@ -83,6 +83,7 @@ void GamePlayScreen::update()
 {
     checkInput();
     camera_.update();
+    board_.update(game_->getInputManager(), camera_);
 }
 
 void GamePlayScreen::draw()
@@ -114,13 +115,8 @@ void GamePlayScreen::draw()
     //board_.drawDebug(debugRenderer_);
     debugRenderer_.end();
     debugRenderer_.render(camera_.getCameraMatrix(), 2.f);
-
-    
-    
     
     textureProgram_.unuse();
-
-    
 }
 
 

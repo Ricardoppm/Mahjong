@@ -15,6 +15,7 @@
 #include <Bengine/InputManager.hpp>
 #include <Bengine/DebugRenderer.hpp>
 #include <Bengine/GLTexture.h>
+#include <Bengine/Camera2D.hpp>
 
 #include <SDL2/SDL_events.h>
 
@@ -43,7 +44,7 @@ public:
     void draw(Bengine::SpriteBatch& spriteBatch);
     void drawDebug(Bengine::DebugRenderer& debugRenderer);
     
-    void update(Bengine::InputManager& inputManager);
+    void update(Bengine::InputManager& inputManager, Bengine::Camera2D& camera);
     
     
     // Getters
@@ -56,18 +57,25 @@ private:
     void loadTextureType(std::vector<TileTexture>& counter, const std::string& type, int max, int numTiles);
     bool createTiles();
     
+    void removeTile(const glm::ivec3& coords);
+    
     glm::vec2 drawDimensions_;
     glm::vec2 tileDimensions_;
     
     int numTilesWidth_;
     int numTilesHeight_;
     
-    Tile tile_;
+    Tile* selectedTile_ = nullptr;
     
     // Holds the level setup
     std::vector<Uint8> board_;
-    
+    std::vector<Uint8> boardState_;
+
     // Holds all tiles
-    std::vector<Tile> tiles_;
+    std::vector<Tile*> tiles_;
+    std::vector<Tile*> activeTiles_;
+    
+    
+
 };
 #endif /* GameBoard_hpp */

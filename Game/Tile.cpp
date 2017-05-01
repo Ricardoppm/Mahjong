@@ -16,19 +16,19 @@ Tile::~Tile()
 {
 }
 
-void Tile::init(const glm::vec2 &pos,
-                const glm::vec2 &dims,
+void Tile::init(const glm::vec2& pos,
+                const glm::vec3& dims,
+                const glm::ivec3& coordinates,
                 Bengine::GLTexture texture,
                 Bengine::ColorRGBA8 color,
-                float depth,
-                Tile* below)
+                float depth)
 {
     position_ = pos;
     dimensions_ = dims;
+    coordinates_ = coordinates;
     color_ = color;
     texture_ = texture;
     depth_ = depth;
-    tileBelow_ = below;
 }
 
 void Tile::draw(Bengine::SpriteBatch &spriteBatch)
@@ -37,6 +37,22 @@ void Tile::draw(Bengine::SpriteBatch &spriteBatch)
                        position_.y,
                        dimensions_.x,
                        dimensions_.y);
-    spriteBatch.draw(destRect, glm::vec4(0.f,0.f,1.f,1.f), texture_.id, 0.f, color_);
-    
+    if(active_){
+        spriteBatch.draw(destRect, glm::vec4(0.f,0.f,1.f,1.f), texture_.id, depth_, Bengine::ColorRGBA8(225,225,225,255));
+    }
+    else{
+       
+        spriteBatch.draw(destRect, glm::vec4(0.f,0.f,1.f,1.f), texture_.id, depth_, color_);
+    }
+}
+
+bool Tile::isClicked(const glm::vec2& mouseClick)
+{
+    if ( mouseClick.x > (position_.x + dimensions_.z) && mouseClick.x < (position_.x + dimensions_.x) ){
+        // X position is correct
+        if ( mouseClick.y > (position_.y + dimensions_.z) && mouseClick.y < (position_.y + dimensions_.y) ){
+            return true;
+        }
+    }
+    return false;
 }

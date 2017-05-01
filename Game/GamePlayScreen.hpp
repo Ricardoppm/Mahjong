@@ -53,7 +53,6 @@ private:
     Bengine::GLSLProgram textureProgram_;
     Bengine::SpriteBatch spriteBatch_;
     Bengine::Camera2D camera_;
-    Bengine::InputManager inputManager_;
     
     Bengine::DebugRenderer debugRenderer_;
 
