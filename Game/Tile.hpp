@@ -53,11 +53,13 @@ public:
     // Getters
     const glm::ivec3 getCoordinates() const { return coordinates_; }
     const GLubyte getTextureId() const { return texture_.texture.id; }
+    const TileTexture getTileTexture() const { return texture_; }
     bool isActive() const { return active_;}
     
     // Setters
     void setColor(const Bengine::ColorRGBA8& color) { color_ = color;}
     void setActive(bool active) { active_ = active;}
+    void setTileTexture(TileTexture& texture) { texture_ = texture; }
     
 private:
     glm::vec2 position_;

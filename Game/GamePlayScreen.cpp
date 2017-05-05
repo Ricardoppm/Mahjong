@@ -9,6 +9,7 @@
 #include "GamePlayScreen.hpp"
 
 #include <iostream>
+#include <string>
 #include <SDL2/SDL.h>
 
 #include <Bengine/IMainGame.hpp>
@@ -31,7 +32,7 @@ int GamePlayScreen::getNextScreenIndex() const
 }
 int GamePlayScreen::getPreviousScreenIndex() const
 {
-    return SCREEN_INDEX_NO_SCREEN;
+    return SCREEN_INDEX_MAINMENU;
 }
 
 void GamePlayScreen::build()
@@ -53,9 +54,6 @@ void GamePlayScreen::onEntry()
 
     // Initialize SpriteFont
     spriteFont_= new Bengine::SpriteFont("Fonts/raleway/Raleway-Regular.ttf", 20);
-    
-    // Initialize GUI
-    gui_.init("GUI/");
     
     // Initialize Debug Renderer
     debugRenderer_.init();
@@ -84,12 +82,23 @@ void GamePlayScreen::onEntry()
     
     // Start timer
     startTimer = SDL_GetTicks();
+    
+    // Init GUI elements
+    initUI();
 }
 
 
 void GamePlayScreen::onExit()
 {
-
+    textureProgram_.dispose();
+    
+    hudSpriteBatch_.dispose();
+    bgSpriteBatch_.dispose();
+    tileSpriteBatch_.dispose();
+    
+    spriteFont_->dispose();
+    
+    gui_.destroy();
 }
 
 void GamePlayScreen::update()
@@ -144,9 +153,22 @@ void GamePlayScreen::checkInput()
     SDL_Event e;
     while ( SDL_PollEvent(&e)  ) {
         game_->onSDLEvent(e);
+        gui_.onSDLEvent(e);
         switch (e.type) {
             case SDL_QUIT:
                 currentState_ = Bengine::ScreenState::EXIT_APPLICATION;
+                break;
+        }
+        
+        switch (gameState_) {
+            case GameState::PLAYING :
+                if( board_.getTilesRemaining()==0){
+                    gameState_ = GameState::FINISHED;
+                }
+                break;
+                
+            case GameState::FINISHED:
+                // SHOW SCOREBOARD
                 break;
         }
     }
@@ -185,6 +207,7 @@ void GamePlayScreen::drawHUD()
     
     std::string timeText("Time: ");
     timeText.append(std::to_string( (SDL_GetTicks()-startTimer)/1000));
+    timeText.append("s");
     
     std::string pairText("Available Pairs: ");
     pairText.append(std::to_string( board_.getNumPairsAvailable()));
@@ -223,9 +246,62 @@ void GamePlayScreen::drawHUD()
     hudSpriteBatch_.end();
     
     hudSpriteBatch_.renderBatch();
+
+    gui_.draw();
+    
+    glEnable(GL_BLEND);
 }
 
 void GamePlayScreen::initUI()
 {
+    // Initialize GUI
+    gui_.init("GUI");
+    gui_.loadScheme("TaharezLook.scheme");
+    gui_.setFont("DejaVuSans-10");
+    
+    {// Shuffle, Restart and exit Buttons
+        const float X_POS = 0.87f;
+        const float Y_POS = 0.05f;
+        const float X_DIM = 0.1f;
+        const float Y_DIM = 0.05f;
+        const float PADDING = 0.07f;
 
+        shuffleButton_ = static_cast<CEGUI::PushButton*>(gui_.createWidget("TaharezLook/Button", glm::vec4(X_POS, Y_POS, X_DIM, Y_DIM), glm::vec4(0.0f), "ShuffleButton"));
+        shuffleButton_->setText("Shuffle (3)");
+        shuffleButton_->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GamePlayScreen::onShuffleClick, this));
+        
+        exitButton_ = static_cast<CEGUI::PushButton*>(gui_.createWidget("TaharezLook/Button", glm::vec4(X_POS, Y_POS + PADDING, X_DIM, Y_DIM), glm::vec4(0.0f), "ExitButton"));
+        exitButton_->setText("Exit Game");
+        exitButton_->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GamePlayScreen::onExitClick, this));
+        
+        restartButton_ = static_cast<CEGUI::PushButton*>(gui_.createWidget("TaharezLook/Button", glm::vec4(X_POS, Y_POS + 2*PADDING, X_DIM, Y_DIM), glm::vec4(0.0f), "RestartButton"));
+        restartButton_->setText("Restart");
+        restartButton_->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GamePlayScreen::onRestartClick, this));
+    }
+    // Change cursor
+    //gui_.setMouseCursor("TaharezLook/MouseArrow");
+    //gui_.showMouseCursor();
+    //SDL_ShowCursor(0);
+}
+
+
+bool GamePlayScreen::onShuffleClick(const CEGUI::EventArgs& e) {
+    if (shuffleRemaining_ == 0) {
+        return true;
+    }
+    std::string text("Shuffle (" + std::to_string(--shuffleRemaining_) + ")");
+    shuffleButton_->setText(text);
+    board_.shuffle();
+    return true;
+}
+
+bool GamePlayScreen::onExitClick(const CEGUI::EventArgs& e) {
+    currentState_ = Bengine::ScreenState::CHANGE_PREVIOUS;
+    return true;
+}
+
+bool GamePlayScreen::onRestartClick(const CEGUI::EventArgs& e) {
+    board_.restart();
+    startTimer = SDL_GetTicks();
+    return true;
 }

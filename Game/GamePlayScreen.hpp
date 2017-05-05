@@ -22,8 +22,9 @@
 
 #include "GameBoard.hpp"
 
-const float TILE_DIM_WIDTH = 10.f;
-const float TILE_DIM_HEIGHT = 13.1f;
+const int NUM_SHUFFLES = 3;
+
+enum class GameState{ PLAYING, FINISHED};
 
 class GamePlayScreen : public Bengine::IGameScreen
 {
@@ -54,6 +55,12 @@ private:
     void drawHUD();
     void initUI();
     
+    // CEGUI input handlers
+    bool onShuffleClick(const CEGUI::EventArgs& e);
+    bool onExitClick(const CEGUI::EventArgs& e);
+    bool onRestartClick(const CEGUI::EventArgs& e);
+
+    // Private member    
     Bengine::Window* window_;
     
     Bengine::GLSLProgram textureProgram_;
@@ -73,5 +80,15 @@ private:
     Uint32 startTimer;
     
     GameBoard board_;
+    
+    int shuffleRemaining_ = NUM_SHUFFLES;
+    
+    GameState gameState_ = GameState::PLAYING;
+    
+    // CEGUI elements
+    CEGUI::PushButton* shuffleButton_;
+    CEGUI::PushButton* exitButton_;
+    CEGUI::PushButton* restartButton_;
+
 };
 #endif /* GamePlayScreen_hpp */

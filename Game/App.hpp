@@ -11,7 +11,9 @@
 
 #include <Bengine/IMainGame.hpp>
 
+#include "MainMenuScreen.hpp"
 #include "GamePlayScreen.hpp"
+#include "EditorScreen.hpp"
 
 class App : public Bengine::IMainGame
 {
@@ -27,7 +29,10 @@ public:
     virtual void onExit() override;
     
 private:
+    std::unique_ptr<MainMenuScreen> mainMenuScreen_ = nullptr;
     std::unique_ptr<GamePlayScreen> gameplayScreen_ = nullptr;
+    std::unique_ptr<EditorScreen> editorScreen_ = nullptr;
+
 };
 
 #endif /* App_hpp */

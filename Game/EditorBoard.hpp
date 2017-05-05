@@ -1,13 +1,14 @@
 //
-//  GameBoard.hpp
+//  EditorBoard.hpp
 //  Mahjong
 //
-//  Created by Ricardo Martins on 29/04/2017.
+//  Created by Ricardo Martins on 05/05/2017.
 //  Copyright © 2017 Ricardo Martins. All rights reserved.
 //
 
-#ifndef GameBoard_hpp
-#define GameBoard_hpp
+#ifndef EditorBoard_hpp
+#define EditorBoard_hpp
+
 
 #include <glm/glm.hpp>
 
@@ -22,13 +23,15 @@
 #include "Tile.hpp"
 #include "GameDimensions.h"
 
-class GameBoard
-{
+
+
+class EditorBoard
+{    
 public:
-    GameBoard();
-    ~GameBoard();
+    EditorBoard();
+    ~EditorBoard();
     
-    void init(const glm::vec2& tileDims, const std::string& filePath);
+    void init(const glm::vec2& tileDims);
     void destroy();
     
     void draw(Bengine::SpriteBatch& spriteBatch);
@@ -36,7 +39,6 @@ public:
     
     void update(Bengine::InputManager& inputManager, Bengine::Camera2D& camera);
     
-    void shuffle();
     void restart();
     
     // Getters
@@ -44,19 +46,11 @@ public:
     const int       getNumTilesHeight() const       { return numTilesHeight_; }
     const size_t    getTilesRemaining() const       { return tiles_.size();   }
     const int       getNumPairsAvailable() const    { return numPairsAvailable; }
-
+    
 private:
-    bool loadFromFile(const std::string& filePath);
-    void loadTileTextures(std::vector<TileTexture>& counter);
-    void loadTextureType(std::vector<TileTexture>& counter, const std::string& type, int max, int numTiles, TileType tileType);
     bool createTiles();
     
     void removeTile(const glm::ivec3& coords);
-    
-    bool isTileActive(const glm::ivec3& coords);
-    
-    void calculatePairsAvailable();
-
     
     glm::vec2 drawDimensions_;
     glm::vec2 tileDimensions_;
@@ -64,19 +58,19 @@ private:
     int numTilesWidth_;
     int numTilesHeight_;
     
-    Tile* selectedTile_ = nullptr;
-    
     // Holds the level setup
     std::vector<Uint8> board_;
-    std::vector<Uint8> boardState_;
-
+    
     // Holds all tiles
     std::vector<Tile*> tiles_;
     std::vector<Tile*> activeTiles_;
     
     int numPairsAvailable;
     
+    TileTexture texture_;
     
-
+    
+    
 };
-#endif /* GameBoard_hpp */
+
+#endif /* EditorBoard_hpp */

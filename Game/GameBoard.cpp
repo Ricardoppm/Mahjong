@@ -18,6 +18,8 @@
 
 GameBoard::GameBoard()
 {
+    // initialize random seed
+    srand (time(NULL));
 }
 
 GameBoard::~GameBoard()
@@ -107,6 +109,37 @@ void GameBoard::update(Bengine::InputManager &inputManager, Bengine::Camera2D& c
     }
 }
 
+void GameBoard::shuffle()
+{
+    std::vector<TileTexture> textures;
+    
+    textures.reserve( tiles_.size());
+    
+    for(auto tile: tiles_){
+        textures.push_back(tile->getTileTexture());
+    }
+    
+    for(auto tile: tiles_){
+        int index = rand()% textures.size();
+        tile->setTileTexture( textures[index]);
+        textures[index] = textures.back();
+        textures.pop_back();
+    }
+}
+
+void GameBoard::restart()
+{
+    // Clear tile vectors
+    activeTiles_.clear();
+    tiles_.clear();
+
+    // Reset board state
+    boardState_ = board_;
+
+    //Create tiles
+    createTiles();
+}
+
 
 // Private Methods
 
@@ -191,9 +224,6 @@ void GameBoard::loadTextureType(std::vector<TileTexture>& counter, const std::st
 
 bool GameBoard::createTiles()
 {
-    // initialize random seed
-    srand (time(NULL));
-    
     std::vector<TileTexture> counter;
     loadTileTextures(counter);
     
