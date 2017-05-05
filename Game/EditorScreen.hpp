@@ -44,16 +44,22 @@ private:
     void initUI();
     void checkInput();
     
+    // CEGUI input handlers
     bool onExitClicked(const CEGUI::EventArgs& e);
-    
+    bool onClearClick(const CEGUI::EventArgs& e);
+
     Bengine::Window* window_;
     Bengine::Camera2D camera_;
     Bengine::GUI gui_;
     Bengine::GLSLProgram textureProgram_;
     Bengine::SpriteBatch tileSpriteBatch_;
     Bengine::DebugRenderer debugRenderer_;
-
+    
     EditorBoard board_;
+
+    // CEGUI elements
+    CEGUI::PushButton* clearButton_;
+
     
 };
 

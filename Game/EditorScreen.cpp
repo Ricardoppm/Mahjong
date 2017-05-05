@@ -102,7 +102,6 @@ void EditorScreen::draw()
     GLuint cameraUniform = textureProgram_.getUniformLocation("transformationMatrix");
     glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, &projectionMatrix[0][0]);
     
-
     
     // Draw tiles
     tileSpriteBatch_.begin(Bengine::GlyphSortType::BACK_TO_FRONT);
@@ -117,8 +116,11 @@ void EditorScreen::draw()
     debugRenderer_.end();
     debugRenderer_.render(camera_.getCameraMatrix(), 2.f);
 
-    
     textureProgram_.unuse();
+    
+    gui_.draw();
+    
+    glEnable(GL_BLEND);
 }
 
 void EditorScreen::initUI()
@@ -127,7 +129,18 @@ void EditorScreen::initUI()
     gui_.loadScheme("TaharezLook.scheme");
     gui_.setFont("DejaVuSans-10");
     
-   
+    {// Clear Buttons
+        const float X_POS = 0.87f;
+        const float Y_POS = 0.05f;
+        const float X_DIM = 0.1f;
+        const float Y_DIM = 0.05f;
+        const float PADDING = 0.07f;
+        
+        clearButton_ = static_cast<CEGUI::PushButton*>(gui_.createWidget("TaharezLook/Button", glm::vec4(X_POS, Y_POS, X_DIM, Y_DIM), glm::vec4(0.0f), "ClearButton"));
+        clearButton_->setText("Clear");
+        clearButton_->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&EditorScreen::onClearClick, this));
+    }
+
     
     
     /*
@@ -156,3 +169,9 @@ bool EditorScreen::onExitClicked(const CEGUI::EventArgs& e)
     currentState_ = Bengine::ScreenState::EXIT_APPLICATION;
     return true;
 }
+
+bool EditorScreen::onClearClick(const CEGUI::EventArgs& e){
+    board_.restart();
+    return true;
+}
+

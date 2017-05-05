@@ -36,6 +36,9 @@ void EditorBoard::init(const glm::vec2 &tileDims)
     
     // Load texture
     texture_.texture = Bengine::ResourceManager::getTexture("Textures/128/tile.png");
+    
+    // Create empty board
+    board_.resize(TILE_MAX_WIDTH*TILE_MAX_HEIGHT*4, -1);
 }
 
 void EditorBoard::destroy()
@@ -68,29 +71,166 @@ void EditorBoard::drawDebug(Bengine::DebugRenderer& debugRenderer)
 
 void EditorBoard::update(Bengine::InputManager &inputManager, Bengine::Camera2D& camera)
 {
+    // Improve this code, too repetitive
+    
     bool hasClickedTile = false;
     if( inputManager.isKeyPressed(SDL_BUTTON_LEFT)){
         glm::vec2 mouseCoords = camera.convertScreenToWorld( inputManager.getMouseCoords());
         
-        if( mouseCoords.x > 0.f && mouseCoords.x < TILE_DIM_WIDTH*TILE_MAX_WIDTH*2 &&
-           mouseCoords.y < 0.f && mouseCoords.y < TILE_DIM_HEIGHT*TILE_MAX_HEIGHT*2){
-            int x = (int)mouseCoords.x / (TILE_DIM_WIDTH/2);
-            int y = -(int)mouseCoords.y / (TILE_DIM_HEIGHT/2);
+        Tile* clickedTile = nullptr;
+        for (auto tile : tiles_) {
+            if(tile->isClicked(mouseCoords)){
+                // check if clicked tile is higher than the current one
+                if( clickedTile == nullptr || tile->getCoordinates().z > clickedTile->getCoordinates().z){
+                    clickedTile = tile;
+                }
+            }
+        }
+        
+        if(clickedTile != nullptr){
+            // User clicked on an existing Tile
+            // Verify which quadrant was clicked
+            glm::vec2 tilePos = clickedTile->getPosition();
+            glm::ivec3 tileCoords = clickedTile->getCoordinates();
+            glm::ivec3 mouseIndex;
+            if( mouseCoords.x < tilePos.x + PADDING + drawDimensions_.x/2.f){
+                // Left Side
+                if(mouseCoords.y > tilePos.y + PADDING + drawDimensions_.y/2.f){
+                    // Top Left
+                    mouseIndex.x = tileCoords.x;
+                    mouseIndex.y = tileCoords.y;
+                }
+                else{
+                    // Bottom Left
+                    mouseIndex.x = tileCoords.x;
+                    mouseIndex.y = tileCoords.y+1;
+                }
+            }
+            else {
+                // Right Side
+                if(mouseCoords.y > tilePos.y + PADDING + drawDimensions_.y/2.f){
+                    // Top Right
+                    mouseIndex.x = tileCoords.x+1;
+                    mouseIndex.y = tileCoords.y;
+                }
+                else{
+                    // Bottom Right
+                    mouseIndex.x = tileCoords.x+1;
+                    mouseIndex.y = tileCoords.y+1;
+                }
+            }
+            mouseIndex.z = tileCoords.z;
             
-            glm::vec3 tileDimensions;
-            tileDimensions.x = tileDimensions_.x;
-            tileDimensions.y = tileDimensions_.y;
-            tileDimensions.z = PADDING;
+            // Check is tile is being created on a plane surface
+            int tileIndex = (mouseIndex.y * numTilesWidth_*2) + mouseIndex.x;
+            if( board_[tileIndex] == mouseIndex.z &&
+                board_[tileIndex + 1] == mouseIndex.z &&
+                board_[tileIndex + (numTilesWidth_*2)] == mouseIndex.z &&
+                board_[tileIndex + (numTilesWidth_*2) + 1] == mouseIndex.z){
+                // Create Tile
+                glm::vec3 tileDimensions;
+                tileDimensions.x = tileDimensions_.x;
+                tileDimensions.y = tileDimensions_.y;
+                tileDimensions.z = PADDING;
+                
+                // place tile one higher
+                mouseIndex.z++;
+
+                Tile* newTile = new Tile();
+                float depth = (float)(-mouseIndex.z / 5.f) + (0.01f * (float)mouseIndex.x) + (float)(-0.0001f * (mouseIndex.y/2));
+                glm::vec2 pos;
+                pos.x = (float)(mouseIndex.x) * drawDimensions_.x/2.f + PADDING*mouseIndex.z;
+                pos.y = -(float)(mouseIndex.y+2) *  drawDimensions_.y/2.f + PADDING*mouseIndex.z;
+                newTile->init(pos,
+                              tileDimensions,
+                              glm::ivec3(mouseIndex.x,mouseIndex.y,mouseIndex.z),
+                              texture_,
+                              Bengine::ColorRGBA8(255,255,255,255),
+                              depth);
+                tiles_.push_back(newTile);
+                
+                // Update board
+                board_[tileIndex]++;
+                board_[tileIndex + 1]++;
+                board_[tileIndex + (numTilesWidth_*2)]++;
+                board_[tileIndex + (numTilesWidth_*2) + 1]++;
+            }
             
-            Tile* newTile = new Tile();
-            newTile->init(glm::vec2(x*(TILE_DIM_WIDTH/2), -(y+2)*(TILE_DIM_HEIGHT/2)),
-                         tileDimensions,
-                         glm::ivec3(x,y,0),
-                         texture_,
-                         Bengine::ColorRGBA8(255,255,255,255),
-                         0.f);
             
-            tiles_.push_back(newTile);
+        }
+        else{
+            // User didn't click on tile. See if he clicked on gri
+            if( mouseCoords.x > 0.f && mouseCoords.x < drawDimensions_.x*TILE_MAX_WIDTH*2 &&
+               mouseCoords.y < 0.f && mouseCoords.y < drawDimensions_.y*TILE_MAX_HEIGHT*2){
+                // Insert tile on grid position clicked
+                int x = (int)mouseCoords.x / (drawDimensions_.x /2);
+                int y = -(int)mouseCoords.y / (drawDimensions_.y/2);
+                
+                // Check is tile is being created on a plane surface
+                int tileIndex = (y * numTilesWidth_*2) + x;
+                Uint8 floor = -1;
+                if( board_[tileIndex] == floor &&
+                   board_[tileIndex + 1] == floor &&
+                   board_[tileIndex + (numTilesWidth_*2)] == floor &&
+                   board_[tileIndex + (numTilesWidth_*2) + 1] == floor){
+                
+                    glm::vec3 tileDimensions;
+                    tileDimensions.x = tileDimensions_.x;
+                    tileDimensions.y = tileDimensions_.y;
+                    tileDimensions.z = PADDING;
+                    
+                    float depth = (0.01f * (float)x) + (float)(-0.0001f * (y/2));
+                    Tile* newTile = new Tile();
+                    newTile->init(glm::vec2(x*(drawDimensions_.x/2), -(y+2)*(drawDimensions_.y/2)),
+                                 tileDimensions,
+                                 glm::ivec3(x,y,0),
+                                 texture_,
+                                 Bengine::ColorRGBA8(255,255,255,255),
+                                 depth);
+                    
+                    tiles_.push_back(newTile);
+                    
+                    // Update board
+                    board_[tileIndex]++;
+                    board_[tileIndex + 1]++;
+                    board_[tileIndex + (numTilesWidth_*2)]++;
+                    board_[tileIndex + (numTilesWidth_*2) + 1]++;
+                }
+            }
+        }
+    }
+    else if( inputManager.isKeyPressed(SDL_BUTTON_RIGHT)){
+        glm::vec2 mouseCoords = camera.convertScreenToWorld( inputManager.getMouseCoords());
+        
+        int clickedTileIndex = -1;
+        for(size_t i = 0; i < tiles_.size(); i++){
+            if(tiles_[i]->isClicked(mouseCoords)){
+                // check if clicked tile is higher than the current one
+                if( clickedTileIndex == -1 || tiles_[i]->getCoordinates().z > tiles_[clickedTileIndex]->getCoordinates().z){
+                    clickedTileIndex = (int)i;
+                }
+            }
+        }
+        if (clickedTileIndex != -1) {
+            // User clicked a Tile
+            glm::ivec3 tileCoords = tiles_[clickedTileIndex]->getCoordinates();
+            int tileIndex = (tileCoords.y * numTilesWidth_*2) + tileCoords.x;
+
+            if( board_[tileIndex] == tileCoords.z &&
+               board_[tileIndex + 1] == tileCoords.z &&
+               board_[tileIndex + (numTilesWidth_*2)] == tileCoords.z &&
+               board_[tileIndex + (numTilesWidth_*2) + 1] == tileCoords.z){
+                // Clicked tile has nothing above it -> remove
+                delete tiles_[clickedTileIndex];
+                tiles_[clickedTileIndex] = tiles_.back();
+                tiles_.pop_back();
+                
+                // Update board
+                board_[tileIndex]--;
+                board_[tileIndex + 1]--;
+                board_[tileIndex + (numTilesWidth_*2)]--;
+                board_[tileIndex + (numTilesWidth_*2) + 1]--;
+            }
         }
         
     }
@@ -98,9 +238,11 @@ void EditorBoard::update(Bengine::InputManager &inputManager, Bengine::Camera2D&
 
 void EditorBoard::restart()
 {
+    std::fill(board_.begin(), board_.end(), (Uint8)-1);
+    
     // Clear tile vectors
     activeTiles_.clear();
-    tiles_.clear();
+    tiles_.clear();   
 }
 
 

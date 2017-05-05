@@ -52,6 +52,7 @@ public:
     
     // Getters
     const glm::ivec3 getCoordinates() const { return coordinates_; }
+    const glm::vec2 getPosition() const { return position_; }
     const GLubyte getTextureId() const { return texture_.texture.id; }
     const TileTexture getTileTexture() const { return texture_; }
     bool isActive() const { return active_;}
