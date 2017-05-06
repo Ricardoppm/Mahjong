@@ -9,6 +9,7 @@
 #include "EditorScreen.hpp"
 
 #include <Bengine/IMainGame.hpp>
+#include <Bengine/IOManager.hpp>
 
 
 EditorScreen::EditorScreen(Bengine::Window* window):
@@ -82,7 +83,9 @@ void EditorScreen::update()
 {
     checkInput();
     camera_.update();
-    board_.update(game_->getInputManager(), camera_);
+    // Ignore board updates while sabe menu is open
+    if(saveWindow_->isDisabled())
+        board_.update(game_->getInputManager(), camera_);
 }
 
 void EditorScreen::draw()
@@ -141,7 +144,36 @@ void EditorScreen::initUI()
         clearButton_->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&EditorScreen::onClearClick, this));
     }
 
+    { // Add save and back buttons
+        const float X_POS = 0.87f;
+        const float Y_POS = 0.12f;
+        const float X_DIM = 0.1f;
+        const float Y_DIM = 0.05f;
+        const float PADDING = 0.07f;
+        
+        saveButton_ = static_cast<CEGUI::PushButton*>(gui_.createWidget("TaharezLook/Button", glm::vec4(X_POS, Y_POS, X_DIM, Y_DIM), glm::vec4(0.0f), "SaveButton"));
+        saveButton_->setText("Save");
+        saveButton_->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&EditorScreen::onSaveMouseClick, this));
+        
+    }
     
+    { // Add save window widgets
+        saveWindow_ = static_cast<CEGUI::FrameWindow*>(gui_.createWidget("TaharezLook/FrameWindow", glm::vec4(0.3f, 0.3f, 0.4f, 0.4f), glm::vec4(0.0f), "SaveWindow"));
+        saveWindow_->subscribeEvent(CEGUI::FrameWindow::EventCloseClicked, CEGUI::Event::Subscriber(&EditorScreen::onSaveCancelClick, this));
+        saveWindow_->setText("Save Level");
+        // Don't let user drag window around
+        saveWindow_->setDragMovingEnabled(false);
+        
+        // Children of saveWindow
+        saveWindowCombobox_ = static_cast<CEGUI::Combobox*>(gui_.createWidget(saveWindow_, "TaharezLook/Combobox", glm::vec4(0.1f, 0.1f, 0.8f, 0.4f), glm::vec4(0.0f), "SaveCombobox"));
+        saveWindowSaveButton_ = static_cast<CEGUI::PushButton*>(gui_.createWidget(saveWindow_, "TaharezLook/Button", glm::vec4(0.35f, 0.8f, 0.3f, 0.1f), glm::vec4(0.0f), "SaveCancelButton"));
+        saveWindowSaveButton_->setText("Save");
+        saveWindowSaveButton_->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&EditorScreen::onSave, this));
+        
+        // Start disabled
+        saveWindow_->setAlpha(0.0f);
+        saveWindow_->disable();
+    }
     
     /*
      gui_.setMouseCursor("TaharezLook/MouseArrow");
@@ -174,4 +206,70 @@ bool EditorScreen::onClearClick(const CEGUI::EventArgs& e){
     board_.restart();
     return true;
 }
+
+bool EditorScreen::onSaveMouseClick(const CEGUI::EventArgs& e) {
+    // Make sure levels dir exists
+    Bengine::IOManager::makeDirectory("Levels/Custom");
+    
+    saveWindowCombobox_->clearAllSelections();
+    
+    // Remove all items
+    for (auto& item : saveListBoxItems_) {
+        // We don't have to call delete since removeItem does it for us
+        saveWindowCombobox_->removeItem(item);
+    }
+    saveListBoxItems_.clear();
+    
+    // Get all directory entries
+    std::vector<Bengine::DirEntry> entries;
+    Bengine::IOManager::getDirectoryEntries("Levels/Custom", entries);
+    
+    
+    // Add all files to list box
+    for (auto& e : entries) {
+        // Don't add directories
+        if (!e.isDirectory) {
+            // Remove "Levels/" substring
+            e.path.erase(0, std::string("Levels/Custom/").size());
+            saveListBoxItems_.push_back(new CEGUI::ListboxTextItem(e.path));
+            saveWindowCombobox_->addItem(saveListBoxItems_.back());
+        }
+    }
+    
+    saveWindow_->enable();
+    saveWindow_->setAlpha(1.0f);
+    //loadWindow_->disable();
+    //loadWindow_->setAlpha(0.0f);
+    return true;
+}
+
+bool EditorScreen::onSaveCancelClick(const CEGUI::EventArgs& e) {
+    saveWindow_->disable();
+    saveWindow_->setAlpha(0.0f);
+    return true;
+}
+
+bool EditorScreen::onSave(const CEGUI::EventArgs& e) {
+    if( board_.getTilesRemaining() == 0){
+        puts("Must create player before saving.");
+        return true;
+    }
+    
+    puts("Saving game...");
+    // Make sure levels dir exists again, for good measure.
+    Bengine::IOManager::makeDirectory("Levels/Custom");
+    
+    // Save in text mode
+    std::string text = "Levels/Custom/" + std::string(saveWindowCombobox_->getText().c_str());
+    if ( board_.saveBoard(text)) {
+        saveWindow_->disable();
+        saveWindow_->setAlpha(0.0f);
+        puts("File successfully saved.");
+    } else {
+        puts("Failed to save file.");
+    }
+    
+    return true;
+}
+
 

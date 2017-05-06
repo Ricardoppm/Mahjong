@@ -59,8 +59,9 @@ void GamePlayScreen::onEntry()
     debugRenderer_.init();
     
     // Initialize Board
-    board_.init(glm::vec2(10.f,13.1f), "Levels/puzzle2.txt");
-    
+    //board_.init(glm::vec2(10.f,13.1f), "Levels/puzzle2.txt");
+    board_.init(glm::vec2(10.f,13.1f), "Levels/Custom/abc");
+
     // Initialize Camera
     camera_.init(window_->getScreenWidth(), window_->getScreenHeight());
     camera_.setScale(5.f);

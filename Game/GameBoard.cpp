@@ -227,7 +227,7 @@ bool GameBoard::createTiles()
     std::vector<TileTexture> counter;
     loadTileTextures(counter);
     
-    std::vector<Uint8> level = board_;
+    std::vector<uint8_t> level = board_;
 
     // Resize to hold all tiles
     tiles_.reserve(144);
@@ -326,7 +326,7 @@ void GameBoard::removeTile(const glm::ivec3& coords)
         }
         else{
             tileIndex = tileCoord.y * (numTilesWidth_*2) + tileCoord.x;
-            Uint8 height = tileCoord.z + 1;
+            uint8_t height = tileCoord.z + 1;
             if( !tiles_[i]->isActive() &&
                 boardState_[tileIndex] == height &&
                 boardState_[tileIndex - 1] == height &&
@@ -350,7 +350,7 @@ bool GameBoard::isTileActive(const glm::ivec3 &coords)
     static const int RIGHT_BORDER_INDEX = (numTilesWidth_*2)-1;
 
     int tileIndex = coords.y * (numTilesWidth_*2) + coords.x;
-    Uint8 height = coords.z + 1;
+    uint8_t height = coords.z + 1;
     if( (coords.x == LEFT_BORDER_INDEX || coords.x == RIGHT_BORDER_INDEX) && boardState_[tileIndex] == height ){
         // TOP Border Tiles are always active
         return true;

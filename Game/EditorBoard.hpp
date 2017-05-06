@@ -41,12 +41,13 @@ public:
     
     void restart();
     
+    bool saveBoard(const std::string& filePath);
+    
     // Getters
     const int       getNumTilesWidth() const        { return numTilesWidth_;  }
     const int       getNumTilesHeight() const       { return numTilesHeight_; }
     const size_t    getTilesRemaining() const       { return tiles_.size();   }
-    const int       getNumPairsAvailable() const    { return numPairsAvailable; }
-    
+    std::vector<uint8_t> getBoard() const             { return board_;          }
 private:
     bool createTiles();
     
@@ -59,14 +60,12 @@ private:
     int numTilesHeight_;
     
     // Holds the level setup
-    std::vector<Uint8> board_;
+    std::vector<uint8_t> board_;
     
     // Holds all tiles
     std::vector<Tile*> tiles_;
     std::vector<Tile*> activeTiles_;
-    
-    int numPairsAvailable;
-    
+        
     TileTexture texture_;
     
     

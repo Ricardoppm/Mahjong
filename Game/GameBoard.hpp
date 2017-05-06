@@ -67,8 +67,8 @@ private:
     Tile* selectedTile_ = nullptr;
     
     // Holds the level setup
-    std::vector<Uint8> board_;
-    std::vector<Uint8> boardState_;
+    std::vector<uint8_t> board_;
+    std::vector<uint8_t> boardState_;
 
     // Holds all tiles
     std::vector<Tile*> tiles_;

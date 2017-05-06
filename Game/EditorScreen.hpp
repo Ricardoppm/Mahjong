@@ -47,7 +47,9 @@ private:
     // CEGUI input handlers
     bool onExitClicked(const CEGUI::EventArgs& e);
     bool onClearClick(const CEGUI::EventArgs& e);
-
+    bool onSaveMouseClick(const CEGUI::EventArgs& e);
+    bool onSaveCancelClick(const CEGUI::EventArgs& e);
+    bool onSave(const CEGUI::EventArgs& e);
     Bengine::Window* window_;
     Bengine::Camera2D camera_;
     Bengine::GUI gui_;
@@ -57,8 +59,16 @@ private:
     
     EditorBoard board_;
 
+    bool menuActive = false;
+    
     // CEGUI elements
-    CEGUI::PushButton* clearButton_;
+    CEGUI::PushButton* clearButton_ = nullptr;
+    CEGUI::PushButton* saveButton_ = nullptr;
+    // Save functionality
+    CEGUI::FrameWindow* saveWindow_ = nullptr;
+    CEGUI::PushButton* saveWindowSaveButton_ = nullptr;
+    CEGUI::Combobox* saveWindowCombobox_ = nullptr;
+    std::vector<CEGUI::ListboxTextItem*> saveListBoxItems_;
 
     
 };

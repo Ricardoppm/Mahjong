@@ -17,6 +17,8 @@
 #include <iostream>
 #include <map>
 
+#include "LevelReaderWriter.hpp"
+
 EditorBoard::EditorBoard()
 {
     // Empty
@@ -160,15 +162,15 @@ void EditorBoard::update(Bengine::InputManager &inputManager, Bengine::Camera2D&
         }
         else{
             // User didn't click on tile. See if he clicked on gri
-            if( mouseCoords.x > 0.f && mouseCoords.x < drawDimensions_.x*TILE_MAX_WIDTH*2 &&
-               mouseCoords.y < 0.f && mouseCoords.y < drawDimensions_.y*TILE_MAX_HEIGHT*2){
+            if( mouseCoords.x > 0.f && mouseCoords.x < drawDimensions_.x*TILE_MAX_WIDTH &&
+               mouseCoords.y < 0.f && mouseCoords.y < drawDimensions_.y*TILE_MAX_HEIGHT){
                 // Insert tile on grid position clicked
                 int x = (int)mouseCoords.x / (drawDimensions_.x /2);
                 int y = -(int)mouseCoords.y / (drawDimensions_.y/2);
                 
                 // Check is tile is being created on a plane surface
                 int tileIndex = (y * numTilesWidth_*2) + x;
-                Uint8 floor = -1;
+                uint8_t floor = -1;
                 if( board_[tileIndex] == floor &&
                    board_[tileIndex + 1] == floor &&
                    board_[tileIndex + (numTilesWidth_*2)] == floor &&
@@ -238,11 +240,39 @@ void EditorBoard::update(Bengine::InputManager &inputManager, Bengine::Camera2D&
 
 void EditorBoard::restart()
 {
-    std::fill(board_.begin(), board_.end(), (Uint8)-1);
+    std::fill(board_.begin(), board_.end(), (uint8_t)-1);
     
     // Clear tile vectors
     activeTiles_.clear();
     tiles_.clear();   
+}
+
+bool EditorBoard::saveBoard(const std::string &filePath)
+{
+    int left ,right,top,bottom = -1;
+    
+    for (auto tile : tiles_) {
+        glm::ivec3 tileCoords = tile->getCoordinates();
+        if(bottom==-1){
+            bottom = tileCoords.y;
+            top = bottom;
+            left = tileCoords.x;
+            right = left;
+        }
+        else{
+            if( tileCoords.x < left)
+                left = tileCoords.x;
+            if( tileCoords.x > right)
+                right = tileCoords.x;
+            if( tileCoords.y < bottom)
+                bottom = tileCoords.y;
+            if( tileCoords.y > top)
+                top = tileCoords.y;
+        }
+    }
+
+    return  LevelReaderWriter::saveAsText(filePath, board_, glm::ivec4(left,right,bottom,top), TILE_MAX_WIDTH);
+
 }
 
 
@@ -265,7 +295,7 @@ void EditorBoard::removeTile(const glm::ivec3& coords)
         }
         else{
             tileIndex = tileCoord.y * (numTilesWidth_*2) + tileCoord.x;
-            Uint8 height = tileCoord.z + 1;
+            uint8_t height = tileCoord.z + 1;
             if( !tiles_[i]->isActive() ){
                 // MISSING CONDITIONS!!!
                 
