@@ -44,7 +44,7 @@ public:
               Bengine::ColorRGBA8 color,
               float depth);
     
-    void draw(Bengine::SpriteBatch& spriteBatch);
+    void draw(Bengine::SpriteBatch& spriteBatch, bool easyMode = false);
 
     bool isClicked(const glm::vec2& mouseClick);
     
@@ -60,6 +60,7 @@ public:
     // Setters
     void setColor(const Bengine::ColorRGBA8& color) { color_ = color;}
     void setActive(bool active) { active_ = active;}
+    void setSelected(bool selected) { selected_ = selected; }
     void setTileTexture(TileTexture& texture) { texture_ = texture; }
     
 private:
@@ -70,8 +71,10 @@ private:
     float depth_;
     
     bool active_ = false;
-    
+    bool selected_ = false;
+
     Bengine::ColorRGBA8 color_;
+    Bengine::ColorRGBA8 blockColor_;
     TileTexture texture_;
     
 };

@@ -652,6 +652,35 @@
             <Property name="PushedImage" value="TaharezLook/NewCloseButtonPressed" />
             <Property name="NonClient" value="true" />
         </Child>
+        <Child type="TaharezLook/ImageButton" nameSuffix="__auto_closebutton__">
+            <Area>
+                <Dim type="LeftEdge" >
+                    <OperatorDim op="Subtract">
+                        <OperatorDim op="Subtract">
+                            <UnifiedDim scale="1" type="LeftEdge"/>
+                            <ImageDim name="TaharezLook/SysAreaRight" dimension="Width"/>
+                        </OperatorDim>
+                        <ImageDim name="TaharezLook/SysAreaMiddle" dimension="Width" />
+                    </OperatorDim>
+                </Dim>
+                <Dim type="TopEdge" >
+                    <OperatorDim op="Multiply">
+                        <OperatorDim op="Subtract">
+                            <WidgetDim widget="__auto_titlebar__" dimension="Height" />
+                            <ImageDim name="TaharezLook/NewCloseButtonNormal" dimension="Width" />
+                        </OperatorDim>
+                        <AbsoluteDim value="0.5" />
+                    </OperatorDim>
+                </Dim>
+                <Dim type="Width" ><ImageDim name="TaharezLook/NewCloseButtonNormal" dimension="Width" /></Dim>
+                <Dim type="Height" ><ImageDim name="TaharezLook/NewCloseButtonNormal" dimension="Width" /></Dim>
+            </Area>
+            <Property name="AlwaysOnTop" value="true" />
+            <Property name="NormalImage" value="TaharezLook/NewCloseButtonNormal" />
+            <Property name="HoverImage" value="TaharezLook/NewCloseButtonHover" />
+            <Property name="PushedImage" value="TaharezLook/NewCloseButtonPressed" />
+            <Property name="NonClient" value="true" />
+        </Child>
         <ImagerySection name="withtitle_frame">
             <FrameComponent>
                 <Area>
@@ -3807,6 +3836,81 @@
     ***************************************************
     -->
     <WidgetLook name="TaharezLook/ImageButton">
+        <PropertyDefinition name="NormalImageColour" initialValue="FFFFFFFF" redrawOnWrite="true" type="ColourRect" />
+        <PropertyDefinition name="HoverImageColour" initialValue="FFFFFFFF" redrawOnWrite="true" type="ColourRect" />
+        <PropertyDefinition name="PushedImageColour" initialValue="FFFFFFFF" redrawOnWrite="true" type="ColourRect" />
+        <PropertyDefinition name="DisabledImageColour" initialValue="FF7F7F7F" redrawOnWrite="true" type="ColourRect" />
+        <PropertyDefinition name="NormalImage" initialValue="" redrawOnWrite="true" type="Image"/>
+        <PropertyDefinition name="HoverImage" initialValue="" redrawOnWrite="true" type="Image"/>
+        <PropertyDefinition name="PushedImage" initialValue="" redrawOnWrite="true" type="Image"/>
+        <PropertyDefinition name="DisabledImage" initialValue="" redrawOnWrite="true" type="Image"/>
+        <PropertyDefinition name="VertImageFormatting" initialValue="Stretched" redrawOnWrite="true" type="VerticalFormatting" />
+        <PropertyDefinition name="HorzImageFormatting" initialValue="Stretched" redrawOnWrite="true" type="HorizontalFormatting" />
+        <ImagerySection name="normal">
+            <ImageryComponent>
+                <ImageProperty name="NormalImage" />
+                <ColourProperty name="NormalImageColour" />
+                <VertFormatProperty name="VertImageFormatting" />
+                <HorzFormatProperty name="HorzImageFormatting" />
+            </ImageryComponent>
+        </ImagerySection>
+        <ImagerySection name="hover">
+            <ImageryComponent>
+                <ImageProperty name="HoverImage" />
+                <ColourProperty name="HoverImageColour" />
+                <VertFormatProperty name="VertImageFormatting" />
+                <HorzFormatProperty name="HorzImageFormatting" />
+            </ImageryComponent>
+        </ImagerySection>
+        <ImagerySection name="pushed">
+            <ImageryComponent>
+                <ImageProperty name="PushedImage" />
+                <ColourProperty name="PushedImageColour" />
+                <VertFormatProperty name="VertImageFormatting" />
+                <HorzFormatProperty name="HorzImageFormatting" />
+            </ImageryComponent>
+        </ImagerySection>
+        <ImagerySection name="disabled">
+            <ImageryComponent>
+                <ImageProperty name="DisabledImage" />
+                <ColourProperty name="DisabledImageColour" />
+                <VertFormatProperty name="VertImageFormatting" />
+                <HorzFormatProperty name="HorzImageFormatting" />
+            </ImageryComponent>
+        </ImagerySection>
+        <StateImagery name="Normal">
+            <Layer>
+                <Section section="normal" />
+            </Layer>
+        </StateImagery>
+        <StateImagery name="Hover">
+            <Layer>
+                <Section section="hover" />
+            </Layer>
+        </StateImagery>
+        <StateImagery name="Pushed">
+            <Layer>
+                <Section section="pushed" />
+            </Layer>
+        </StateImagery>
+        <StateImagery name="PushedOff">
+            <Layer>
+                <Section section="hover" />
+            </Layer>
+        </StateImagery>
+        <StateImagery name="Disabled">
+            <Layer>
+                <Section section="disabled" />
+            </Layer>
+        </StateImagery>
+    </WidgetLook>
+
+ <!--
+    ***************************************************
+        TaharezLook/PuzzleButton
+    ***************************************************
+    -->
+    <WidgetLook name="TaharezLook/PuzzleButton">
         <PropertyDefinition name="NormalImageColour" initialValue="FFFFFFFF" redrawOnWrite="true" type="ColourRect" />
         <PropertyDefinition name="HoverImageColour" initialValue="FFFFFFFF" redrawOnWrite="true" type="ColourRect" />
         <PropertyDefinition name="PushedImageColour" initialValue="FFFFFFFF" redrawOnWrite="true" type="ColourRect" />

@@ -10,6 +10,7 @@
 
 Tile::Tile()
 {
+    blockColor_ = Bengine::ColorRGBA8(166,166,166,255);
 }
 
 Tile::~Tile()
@@ -31,13 +32,14 @@ void Tile::init(const glm::vec2& pos,
     depth_ = depth;
 }
 
-void Tile::draw(Bengine::SpriteBatch &spriteBatch)
+void Tile::draw(Bengine::SpriteBatch &spriteBatch, bool easyMode)
 {
     glm::vec4 destRect(position_.x,
                        position_.y,
                        dimensions_.x,
                        dimensions_.y);
-    spriteBatch.draw(destRect, glm::vec4(0.f,0.f,1.f,1.f), texture_.texture.id, depth_, color_);
+    Bengine::ColorRGBA8 color = (easyMode && !active_ && !selected_)? blockColor_ : color_;
+    spriteBatch.draw(destRect, glm::vec4(0.f,0.f,1.f,1.f), texture_.texture.id, depth_, color);
 }
 
 bool Tile::isClicked(const glm::vec2& mouseClick)

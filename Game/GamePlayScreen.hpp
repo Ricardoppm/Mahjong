@@ -24,7 +24,7 @@
 
 const int NUM_SHUFFLES = 3;
 
-enum class GameState{ PLAYING, FINISHED};
+enum class GameState{SELECTING, PLAYING, FINISHED};
 
 class GamePlayScreen : public Bengine::IGameScreen
 {
@@ -51,16 +51,33 @@ public:
 private:
     void checkInput();
     
-    void loadBackground(const std::string& filePath);
+    void loadBackground(const std::string& filePath,int alpha, bool loadHUD = true);
     void drawHUD();
     void initUI();
+    void initPuzzleMenu();
+    void initScoreBoardUI();
+    void setupScoreBoard(bool isWin);
     
     // CEGUI input handlers
     bool onShuffleClick(const CEGUI::EventArgs& e);
     bool onExitClick(const CEGUI::EventArgs& e);
     bool onRestartClick(const CEGUI::EventArgs& e);
+    bool onEasyToggleClick(const CEGUI::EventArgs& e);
 
-    // Private member    
+    bool onScoreCancelClick(const CEGUI::EventArgs& e);
+    bool onScoreRestartClick(const CEGUI::EventArgs& e);
+    bool onScoreExitClick(const CEGUI::EventArgs& e);
+    // Puzzle Selectors
+    bool onSpiderClick(const CEGUI::EventArgs& e);
+    bool onCatClick(const CEGUI::EventArgs& e);
+    bool onDragonClick(const CEGUI::EventArgs& e);
+    bool onTowerClick(const CEGUI::EventArgs& e);
+    bool onTurtleClick(const CEGUI::EventArgs& e);
+    bool onCustomClick(const CEGUI::EventArgs& e);
+    bool onCustomCancelClick(const CEGUI::EventArgs& e);
+    bool onCustomLoadClick(const CEGUI::EventArgs& e);
+
+    // Private member
     Bengine::Window* window_;
     
     Bengine::GLSLProgram textureProgram_;
@@ -73,22 +90,41 @@ private:
     
     Bengine::Camera2D camera_;
     
-    Bengine::DebugRenderer debugRenderer_;
-    
     Bengine::GUI gui_;
-
+    Bengine::GUI scoreBoardGUI_;
+    Bengine::GUI puzzleGUI_;
+    
+    Bengine::ColorRGBA8 hudColor_;
+    
     Uint32 startTimer;
     
     GameBoard board_;
     
     int shuffleRemaining_ = NUM_SHUFFLES;
+    bool easyMode_ = false;
     
-    GameState gameState_ = GameState::PLAYING;
+    GameState gameState_ = GameState::SELECTING;
     
     // CEGUI elements
-    CEGUI::PushButton* shuffleButton_;
-    CEGUI::PushButton* exitButton_;
-    CEGUI::PushButton* restartButton_;
+    CEGUI::PushButton* shuffleButton_ = nullptr;
+    CEGUI::PushButton* exitButton_ = nullptr;
+    CEGUI::PushButton* restartButton_ = nullptr;
+    CEGUI::ToggleButton* easyToggle_ = nullptr;
+    CEGUI::PushButton* exitSelectionButton_ = nullptr;
 
+
+    // Score board
+    CEGUI::FrameWindow* scoreBoardWindow_ = nullptr;
+    CEGUI::PushButton* scoreWindowRestartButton_ = nullptr;
+    CEGUI::PushButton* scoreWindowExitButton_ = nullptr;
+    CEGUI::DefaultWindow* winLossText_ = nullptr;
+    CEGUI::DefaultWindow* scoreText_ = nullptr;
+    // Load functionality
+    CEGUI::FrameWindow* customWindow_ = nullptr;
+    CEGUI::PushButton* customWindowLoadButton_ = nullptr;
+    CEGUI::Combobox* customWindowCombobox_ = nullptr;
+    std::vector<CEGUI::ListboxTextItem*> customListBoxItems_;
+    
+    
 };
 #endif /* GamePlayScreen_hpp */

@@ -13,6 +13,8 @@
 #include <Bengine/GUI.hpp>
 #include <Bengine/Camera2D.hpp>
 #include <Bengine/IGameScreen.hpp>
+#include <Bengine/SpriteBatch.hpp>
+#include <Bengine/GLSLProgram.hpp>
 
 #include "ScreenIndices.h"
 
@@ -41,6 +43,7 @@ public:
 private:
     void initUI();
     void checkInput();
+    void loadBackground(const std::string& filePath);
     
     // Button Handling
     bool onNewGameClicked(const CEGUI::EventArgs& e);
@@ -52,5 +55,9 @@ private:
     Bengine::Window* window_;
     Bengine::Camera2D camera_;
     Bengine::GUI gui_;
+    Bengine::GLSLProgram textureProgram_;
+    Bengine::SpriteBatch spriteBatch_;
+    
+    
 };
 #endif /* MainMenu_hpp */

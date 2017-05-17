@@ -23,7 +23,7 @@
 #include "Tile.hpp"
 #include "GameDimensions.h"
 
-
+const int TOTAL_TILES = 144;
 
 class EditorBoard
 {    
@@ -42,6 +42,7 @@ public:
     void restart();
     
     bool saveBoard(const std::string& filePath);
+    bool loadFromFile(const std::string& filePath);
     
     // Getters
     const int       getNumTilesWidth() const        { return numTilesWidth_;  }
@@ -64,7 +65,6 @@ private:
     
     // Holds all tiles
     std::vector<Tile*> tiles_;
-    std::vector<Tile*> activeTiles_;
         
     TileTexture texture_;
     

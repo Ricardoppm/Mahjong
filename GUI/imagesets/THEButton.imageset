@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Imageset autoScaled="vertical" imagefile="White.png" name="THEButton" nativeHorzRes="1280" nativeVertRes="720" version="2">
+	<Image Name="btnNormal" XPos="0" YPos="0"  Width="309" Height="429" />
+	<Image Name="btnHover"  XPos="309" YPos="0" Width="309" Height="429" />
+	<Image Name="btnPushed" XPos="0" YPos="429" Width="309" Height="429" />
+	<Image Name="btnDisabl" XPos="309" YPos="429" Width="309" Height="429" />
+</Imageset>

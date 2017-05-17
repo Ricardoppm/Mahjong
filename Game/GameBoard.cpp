@@ -24,6 +24,7 @@ GameBoard::GameBoard()
 
 GameBoard::~GameBoard()
 {
+    destroy();
 }
 
 void GameBoard::init(const glm::vec2 &tileDims, const std::string& filePath)
@@ -42,12 +43,17 @@ void GameBoard::init(const glm::vec2 &tileDims, const std::string& filePath)
 
 void GameBoard::destroy()
 {
+    for (size_t i = 0; i < tiles_.size(); i++) {
+        delete tiles_[i];
+    }
+    tiles_.clear();
+    activeTiles_.clear();
 }
 
-void GameBoard::draw(Bengine::SpriteBatch &spriteBatch)
+void GameBoard::draw(Bengine::SpriteBatch &spriteBatch, bool easyMode)
 {
     for(auto& tile: tiles_)
-        tile->draw(spriteBatch);
+        tile->draw(spriteBatch, easyMode);
 }
 
 void GameBoard::drawDebug(Bengine::DebugRenderer& debugRenderer)
@@ -80,8 +86,10 @@ void GameBoard::update(Bengine::InputManager &inputManager, Bengine::Camera2D& c
                 if( selectedTile_ == nullptr){
                     selectedTile_ = tile;
                     selectedTile_->setColor(Bengine::ColorRGBA8(225,255,225,255));
+                    selectedTile_->setSelected(true);
                 }
                 else{
+                    selectedTile_->setSelected(false);
                     // Compare to previously selected tile
                     if( selectedTile_->isSameTileType(tile)){
                         // Same Tile Type
@@ -97,12 +105,14 @@ void GameBoard::update(Bengine::InputManager &inputManager, Bengine::Camera2D& c
                         selectedTile_->setColor(Bengine::ColorRGBA8(255,255,255,255));
                         selectedTile_ = nullptr;
                     }
+                    selectedTile_ = nullptr;
                 }
                 break;
             }
         }
         if( !hasClickedTile && selectedTile_){
             selectedTile_->setColor(Bengine::ColorRGBA8(255,255,255,255));
+            selectedTile_->setSelected(false);
             selectedTile_ = nullptr;
         }
         
@@ -129,9 +139,8 @@ void GameBoard::shuffle()
 
 void GameBoard::restart()
 {
-    // Clear tile vectors
-    activeTiles_.clear();
-    tiles_.clear();
+    // Clear tiles
+    destroy();
 
     // Reset board state
     boardState_ = board_;
@@ -253,12 +262,13 @@ bool GameBoard::createTiles()
                     // Select Texture
                     int textureIndex = rand() % counter.size();
                     
+                    float depth = (float)(-(height+1) / 5.f) + (0.01f * (float)(x/2)) - (0.01f * (float)(y/2)) - (0.0001f * (float)y) + (0.0001f * (float)x);
                     newTile->init(pos,
                                  tileDimensions,
                                  glm::ivec3(x,y,height) ,
                                  counter[textureIndex],
                                  Bengine::ColorRGBA8(255,255,255,255),
-                                 (float)(-height / 5.f) + (0.01f * (float)x) + (float)(-0.0001f * (y/2)) );
+                                 depth);
                     tiles_.push_back(newTile);
 
                     // Update Texture Counter
@@ -373,16 +383,19 @@ bool GameBoard::isTileActive(const glm::ivec3 &coords)
 void GameBoard::calculatePairsAvailable()
 {
     std::map<int, int> map;
-    
+    numPairsAvailable = 0;
+
     // Make map
-    for (auto tile: activeTiles_) {
-        int textureID =tile->getTextureId();
-        auto it = map.find(textureID);
-        if( it == map.end()){
-            map[textureID] = 1;
-        }
-        else{
-            map[textureID]++;
+    for (auto tile: tiles_) {
+        if( tile->isActive()){
+            int textureID =tile->getTextureId();
+            auto it = map.find(textureID);
+            if( it == map.end()){
+                map[textureID] = 1;
+            }
+            else{
+                map[textureID]++;
+            }
         }
     }
     

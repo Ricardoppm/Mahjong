@@ -83,6 +83,19 @@
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
                 <Property name="RiseOnClickEnabled" value="false" />
             </Window>
+
+            <Window Type="TaharezLook/ImageButton" Name="PuzzleButton">
+                <Property Name="UnifiedPosition" Value="{{0,0},{0,0}}" />
+                <Property Name="UnifiedSize" Value="{{0,64},{0,20}}" />
+                <!-- Here we choose what images to take. set:THEButton means they are stored -->
+                <!-- in the imageset named THEButton and image:btnNormal specifies wich image it is. -->
+                <Property Name="NormalImage"     Value="set:THEButton image:btnNormal" />
+                <Property Name="HoverImage"      Value="set:THEButton image:btnHover"  />
+                <Property Name="PushedImage"     Value="set:THEButton image:btnPushed" />
+                <Property Name="DisabledImage"   Value="set:THEButton image:btnDisabl" />
+                <!-- Now the button would be ready, but without caption ... So we add a caption. -->
+            </Window>
+
             <Window type="TaharezLook/Titlebar" name="titlebar" >
                 <Property name="Area" value="{{0.101563,0},{0.0416667,0},{0.257813,0},{0.0694445,0}}" />
                 <Property name="Text" value="Title Bar" />

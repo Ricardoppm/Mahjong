@@ -31,7 +31,7 @@ public:
     void init(const glm::vec2& tileDims, const std::string& filePath);
     void destroy();
     
-    void draw(Bengine::SpriteBatch& spriteBatch);
+    void draw(Bengine::SpriteBatch& spriteBatch, bool easyMode = false);
     void drawDebug(Bengine::DebugRenderer& debugRenderer);
     
     void update(Bengine::InputManager& inputManager, Bengine::Camera2D& camera);

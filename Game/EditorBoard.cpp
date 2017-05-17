@@ -26,6 +26,7 @@ EditorBoard::EditorBoard()
 
 EditorBoard::~EditorBoard()
 {
+    destroy();
 }
 
 void EditorBoard::init(const glm::vec2 &tileDims)
@@ -45,6 +46,10 @@ void EditorBoard::init(const glm::vec2 &tileDims)
 
 void EditorBoard::destroy()
 {
+    for (size_t i = 0; i < tiles_.size(); i++) {
+        delete tiles_[i];
+    }
+    tiles_.clear();
 }
 
 void EditorBoard::draw(Bengine::SpriteBatch &spriteBatch)
@@ -59,14 +64,14 @@ void EditorBoard::drawDebug(Bengine::DebugRenderer& debugRenderer)
     for(int i = 0; i <= (numTilesHeight_)*2 ; i++){
         debugRenderer.drawLine(glm::vec2( 0.0f, -(drawDimensions_.y * (float)i)/2.f ),
                                glm::vec2( numTilesWidth_ * drawDimensions_.x *2, -(drawDimensions_.y * (float)i))/2.f,
-                               Bengine::ColorRGBA8(255, 0, 0, 200));
+                               Bengine::ColorRGBA8(255, 255, 255, 255));//Bengine::ColorRGBA8(255, 0, 0, 200));
     }
     
     // Draw Vertical Lines
     for(int i = 0; i <= (numTilesWidth_)*2; i++){
         debugRenderer.drawLine(glm::vec2( (drawDimensions_.x * (float)i)/2.f , 0.f ),
                                glm::vec2( (drawDimensions_.x * (float)i)/2.f , -numTilesHeight_ * drawDimensions_.y),
-                               Bengine::ColorRGBA8(0, 0, 255, 200));
+                               Bengine::ColorRGBA8(255, 255, 255, 255));//Bengine::ColorRGBA8(0, 0, 255, 200));
     }
     
 }
@@ -76,7 +81,7 @@ void EditorBoard::update(Bengine::InputManager &inputManager, Bengine::Camera2D&
     // Improve this code, too repetitive
     
     bool hasClickedTile = false;
-    if( inputManager.isKeyPressed(SDL_BUTTON_LEFT)){
+    if( inputManager.isKeyPressed(SDL_BUTTON_LEFT) && tiles_.size()!=TOTAL_TILES){
         glm::vec2 mouseCoords = camera.convertScreenToWorld( inputManager.getMouseCoords());
         
         Tile* clickedTile = nullptr;
@@ -139,7 +144,7 @@ void EditorBoard::update(Bengine::InputManager &inputManager, Bengine::Camera2D&
                 mouseIndex.z++;
 
                 Tile* newTile = new Tile();
-                float depth = (float)(-mouseIndex.z / 5.f) + (0.01f * (float)mouseIndex.x) + (float)(-0.0001f * (mouseIndex.y/2));
+                float depth = (float)(-(mouseIndex.z) / 5.f) + (0.01f * (float)(mouseIndex.x/2)) - (0.01f * (float)(mouseIndex.y/2)) - (0.0001f * (float)mouseIndex.y) + (0.0001f * (float)mouseIndex.x);
                 glm::vec2 pos;
                 pos.x = (float)(mouseIndex.x) * drawDimensions_.x/2.f + PADDING*mouseIndex.z;
                 pos.y = -(float)(mouseIndex.y+2) *  drawDimensions_.y/2.f + PADDING*mouseIndex.z;
@@ -181,7 +186,7 @@ void EditorBoard::update(Bengine::InputManager &inputManager, Bengine::Camera2D&
                     tileDimensions.y = tileDimensions_.y;
                     tileDimensions.z = PADDING;
                     
-                    float depth = (0.01f * (float)x) + (float)(-0.0001f * (y/2));
+                    float depth = (0.01f * (float)(x/2)) - (0.01f * (float)(y/2)) - (0.0001f * (float)y) + (0.0001f * (float)x);
                     Tile* newTile = new Tile();
                     newTile->init(glm::vec2(x*(drawDimensions_.x/2), -(y+2)*(drawDimensions_.y/2)),
                                  tileDimensions,
@@ -201,7 +206,7 @@ void EditorBoard::update(Bengine::InputManager &inputManager, Bengine::Camera2D&
             }
         }
     }
-    else if( inputManager.isKeyPressed(SDL_BUTTON_RIGHT)){
+    else if( inputManager.isKeyPressed(SDL_BUTTON_RIGHT) && tiles_.size()){
         glm::vec2 mouseCoords = camera.convertScreenToWorld( inputManager.getMouseCoords());
         
         int clickedTileIndex = -1;
@@ -242,9 +247,8 @@ void EditorBoard::restart()
 {
     std::fill(board_.begin(), board_.end(), (uint8_t)-1);
     
-    // Clear tile vectors
-    activeTiles_.clear();
-    tiles_.clear();   
+    // Clear tile
+    destroy();
 }
 
 bool EditorBoard::saveBoard(const std::string &filePath)
@@ -275,8 +279,110 @@ bool EditorBoard::saveBoard(const std::string &filePath)
 
 }
 
+bool EditorBoard::loadFromFile(const std::string &filePath)
+{
+    std::ifstream file;
+    file.open(filePath);
+    if( file.fail()){
+        Bengine::fatalError("Failed to open level: " + filePath);
+    }
+    
+    std::string temp;
+    
+    int width, heigth;
+    
+    // get rows and cols
+    file >> width >> heigth;
+    std::getline(file, temp); // Throw away the rest of the line
+    
+    // Check file dimensions
+    if(width > TILE_MAX_WIDTH || heigth > TILE_MAX_HEIGHT){
+        // Size too big
+        return false;
+    }
+    
+    int xoffset =(2*(TILE_MAX_WIDTH-width))/2;
+    int yoffset =(2*(TILE_MAX_HEIGHT-heigth))/2;
+
+    restart();
+    
+    // Read Board setup
+    int line = 0;
+    while(std::getline(file, temp)){
+        if(line == (TILE_MAX_HEIGHT*2) || temp.size() > (TILE_MAX_WIDTH*2)){
+            // Line too long or too many lines
+            return false;
+        }
+        for(size_t i = 0; i < temp.size(); i++){
+            board_[( (line+yoffset)*numTilesWidth_*2) + i + xoffset] = (uint8_t)(temp[i] - '1');
+        }
+        line++;
+    }
+    
+    // Print File
+    for(int i = 0; i< board_.size() ; i++ ){
+        if( i != 0 && i % (numTilesWidth_*2) == 0)
+            std::cout << std::endl;
+        std::cout << board_[i];
+    }
+    std::cout << std::endl;
+    
+    createTiles();
+    return true;
+}
+
 
 // Private Methods
+
+bool EditorBoard::createTiles()
+{
+    std::vector<uint8_t> level = board_;
+    
+    // Resize to hold all tiles
+    tiles_.reserve(144);
+    
+    glm::vec3 tileDimensions;
+    tileDimensions.x = tileDimensions_.x;
+    tileDimensions.y = tileDimensions_.y;
+    tileDimensions.z = PADDING;
+    
+    
+    for(int height = 0; height < 5; height++){
+        for (int y = 0; y < (numTilesHeight_*2); y++) {
+            
+            for (int x = 0; x < (numTilesWidth_*2)-1; x++) {
+                int index = (y*(numTilesWidth_*2) + x);
+                if( level[index] >= 0 && level[index]<=TILE_MAX_LENGTH && board_[index] == (level[index]+height)){
+                    glm::vec2 pos;
+                    pos.x = (float)(x) * drawDimensions_.x/2.f + PADDING*height;
+                    pos.y = -(float)(y+2) *  drawDimensions_.y/2.f + PADDING*height;
+                    
+                    // Create Tile
+                    Tile* newTile = new Tile();
+                   
+                    float depth = (float)(-(height) / 5.f) + (0.01f * (float)(x/2)) - (0.01f * (float)(y/2)) - (0.0001f * (float)y) + (0.0001f * (float)x);
+                    newTile->init(pos,
+                                  tileDimensions,
+                                  glm::ivec3(x,y,height) ,
+                                  texture_,
+                                  Bengine::ColorRGBA8(255,255,255,255),
+                                  depth);
+                    tiles_.push_back(newTile);
+                    
+                    //Update level
+                    level[index]--;
+                    level[index + 1]--;
+                    level[index + 1 + (numTilesWidth_*2)]--;
+                    level[index + (numTilesWidth_*2)]--;
+                }
+            }
+        }
+    }
+    
+    
+    return true;
+}
+
 
 void EditorBoard::removeTile(const glm::ivec3& coords)
 {
@@ -292,20 +398,6 @@ void EditorBoard::removeTile(const glm::ivec3& coords)
             tiles_[i] = tiles_.back();
             tileCoord = tiles_[i]->getCoordinates();
             tiles_.pop_back();
-        }
-        else{
-            tileIndex = tileCoord.y * (numTilesWidth_*2) + tileCoord.x;
-            uint8_t height = tileCoord.z + 1;
-            if( !tiles_[i]->isActive() ){
-                // MISSING CONDITIONS!!!
-                
-                
-                // Tile is unblocked
-                // Add it to the active pile
-                activeTiles_.push_back(tiles_[i]);
-                tiles_[i]->setActive(true);
-            }
-            i++;
         }
     }
 }

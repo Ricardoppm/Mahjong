@@ -26,11 +26,13 @@ bool LevelReaderWriter::saveAsTextV0(const std::string& filePath, const std::vec
     }
     int xRange = (borders.y%2 == 1)? borders.y + 1 : borders.y;
     int yRange = (borders.w%2 == 1)? borders.w + 1 : borders.w;
+    
+    
 
     // Write player
     file << std::ceil( (borders.y-borders.x + 2)/2.f) << ' ' << std::ceil( (borders.w - borders.z + 2)/2.f) << '\n';
-    for (size_t y = borders.z; y <= xRange+1; y++) {
-        for (size_t x = borders.x; x <= yRange+1; x++) {
+    for (size_t y = borders.z; y <= yRange+1; y++) {
+        for (size_t x = borders.x; x <= xRange+1; x++) {
             uint8_t value = board[(y*width*2) + x]+1;
             file << (int)value;
         }

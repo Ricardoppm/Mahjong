@@ -8,6 +8,8 @@
 
 #include "MainMenuScreen.hpp"
 
+#include <Bengine/ResourceManager.hpp>
+
 MainMenuScreen::MainMenuScreen(Bengine::Window* window):
 window_(window)
 {
@@ -42,6 +44,17 @@ void MainMenuScreen::onEntry()
     
     // Initialize UI
     initUI();
+    
+    //Init Shaders
+    textureProgram_.compileShaders("Shaders/textureShading.vert", "Shaders/textureShading.frag");
+    textureProgram_.addAttribute("vertexPosition");
+    textureProgram_.addAttribute("vertexColor");
+    textureProgram_.addAttribute("vertexUV");
+    textureProgram_.linkShaders();
+    
+    // Place BackGround
+    spriteBatch_.init();
+    loadBackground("Textures/Backgrounds/mainmenu.png");
 }
 
 void MainMenuScreen::onExit()
@@ -58,9 +71,25 @@ void MainMenuScreen::update()
 void MainMenuScreen::draw()
 {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(0.f, 0.f, 0.3f, 1.f);
+    glClearColor(1.f, 1.f, 1.f, 1.f);
     
+    textureProgram_.use();
+    
+    // Upload texture uniform
+    GLuint textureUniform = textureProgram_.getUniformLocation("mySampler");
+    glUniform1i(textureUniform, 0);
+    glActiveTexture(GL_TEXTURE0);
+    
+    // Camera matrix
+    glm::mat4 projectionMatrix = camera_.getCameraMatrix();
+    GLuint cameraUniform = textureProgram_.getUniformLocation("transformationMatrix");
+    glUniformMatrix4fv(cameraUniform, 1, GL_FALSE, &projectionMatrix[0][0]);
+    
+    spriteBatch_.renderBatch();
+
     gui_.draw();
+    
+    textureProgram_.unuse();
 }
 
 void MainMenuScreen::initUI()
@@ -87,12 +116,6 @@ void MainMenuScreen::initUI()
     exitButton->setText("Exit Game!");
     // Set event for button
     exitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&MainMenuScreen::onExitClicked, this));
-
-    /*
-    gui_.setMouseCursor("TaharezLook/MouseArrow");
-    gui_.showMouseCursor();
-    SDL_ShowCursor(0);*/
-    
 }
 
 void MainMenuScreen::checkInput()
@@ -106,6 +129,25 @@ void MainMenuScreen::checkInput()
                 break;
         }
     }
+}
+
+void MainMenuScreen::loadBackground(const std::string& filePath)
+{
+    Bengine::GLTexture texture_ = Bengine::ResourceManager::getTexture(filePath);
+    
+    spriteBatch_.begin();
+    
+    glm::vec2 cameraPos = camera_.getPosition();
+    glm::vec4 destRect;
+    destRect.x = cameraPos.x - window_->getScreenWidth() / (camera_.getScale() * 2.f);
+    destRect.y = cameraPos.y - window_->getScreenHeight() / (camera_.getScale() *2.f);
+    destRect.z = window_->getScreenWidth() / camera_.getScale();
+    destRect.w = window_->getScreenHeight() / camera_.getScale();
+    
+    
+    spriteBatch_.draw(destRect, glm::vec4(0.f,0.f,1.f,1.f), texture_.id, 0.f, Bengine::ColorRGBA8(255,255,255,255));
+    
+    spriteBatch_.end();
 }
 
 bool MainMenuScreen::onNewGameClicked(const CEGUI::EventArgs& e)
